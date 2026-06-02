@@ -22,10 +22,15 @@ export default function LoginPage() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, password }),
     });
-    const data = await res.json();
+    let data: any = null;
+    try {
+      data = await res.json();
+    } catch {
+      data = null;
+    }
     setLoading(false);
     if (!res.ok) {
-      setError(data.error || "Login failed");
+      setError((data && data.error) || "Login failed");
       return;
     }
     router.push("/dashboard");
