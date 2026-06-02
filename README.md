@@ -1,36 +1,72 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# NS Power Solution — Inspection Management
 
-## Getting Started
+Fire & Pump **Routine Inspection Checklist** web application for NS POWER SOLUTION.
 
-First, run the development server:
+## Features
+
+- **Roles:** Admin & Inspector with JWT login
+- **Dashboard:** Stats, recent activity, AMC overdue alerts
+- **Digital inspection form:** Full paper checklist (14 items, Yes/No/N/A)
+- **Photos:** Before / After / General uploads
+- **Digital signature** & PDF report generation
+- **Admin panel:** Search, assign engineers, view all records
+- **AMC reminders:** Due within 7 days
+- **WhatsApp share** link after PDF generation
+
+## Quick start
 
 ```bash
+cd C:\Users\lenovo\ns-power-inspection
+npm install
+npx prisma migrate dev --name init
+npm run db:seed
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000)
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+After seeding, use the accounts created in `prisma/seed.ts`. Change default passwords from **Account Settings** in the app.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Environment
 
-## Learn More
+Copy `.env` and set:
 
-To learn more about Next.js, take a look at the following resources:
+```
+DATABASE_URL="file:./dev.db"
+JWT_SECRET="your-long-random-secret"
+NEXT_PUBLIC_APP_URL="http://localhost:3000"
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+For **MySQL**, change `prisma/schema.prisma` provider to `mysql` and set:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```
+DATABASE_URL="mysql://user:pass@localhost:3306/ns_power"
+```
 
-## Deploy on Vercel
+## Scripts
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+| Command | Description |
+|---------|-------------|
+| `npm run dev` | Development server |
+| `npm run build` | Production build |
+| `npm run db:seed` | Seed users & sample data |
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Project structure
+
+```
+src/app/(app)/     # Authenticated pages
+src/app/api/       # REST API routes
+src/components/    # UI & inspection form
+src/lib/           # Auth, PDF, checklist constants
+prisma/            # Database schema & seed
+public/reports/    # Generated PDFs
+public/uploads/    # Inspection photos
+```
+
+## Tech stack
+
+- Next.js 16 (App Router) + TypeScript
+- Tailwind CSS 4
+- Prisma + SQLite (dev) / MySQL (production)
+- JWT cookies (jose)
+- jsPDF for reports

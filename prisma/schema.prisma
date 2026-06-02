@@ -1,0 +1,198 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+enum Role {
+  ADMIN
+  INSPECTOR
+}
+
+enum InspectionStatus {
+  DRAFT
+  ASSIGNED
+  IN_PROGRESS
+  PENDING_APPROVAL
+  COMPLETED
+  REJECTED
+}
+
+enum FormKind {
+  FIRE_PUMP
+  FSR
+}
+
+enum BuildingType {
+  NEW
+  EXISTING
+  RENOVATION
+}
+
+enum DriveType {
+  ELECTRIC
+  DIESEL
+}
+
+enum ChecklistAnswer {
+  YES
+  NO
+  NA
+}
+
+enum PhotoTag {
+  BEFORE
+  AFTER
+  GENERAL
+}
+
+enum AmcFrequency {
+  MONTHLY
+  QUARTERLY
+  ANNUAL
+}
+
+model User {
+  id           String        @id @default(cuid())
+  name         String
+  email        String        @unique
+  passwordHash String
+  role         Role          @default(INSPECTOR)
+  phone        String?
+  active       Boolean       @default(true)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  inspections  Inspection[]  @relation("AssignedInspections")
+  created      Inspection[]  @relation("CreatedInspections")
+  amcContracts AmcContract[]
+  activities   ActivityLog[]
+}
+
+model Customer {
+  id         String     @id @default(cuid())
+  name       String
+  phone      String?
+  email      String?
+  address    String?
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+  properties Property[]
+}
+
+model Property {
+  id              String        @id @default(cuid())
+  customerId      String?
+  customer        Customer?     @relation(fields: [customerId], references: [id])
+  buildingName    String
+  buildingAddress String
+  contactPerson   String?
+  contactAddress  String?
+  phone           String?
+  fax             String?
+  email           String?
+  buildingType    BuildingType?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  inspections     Inspection[]
+  amcContracts    AmcContract[]
+}
+
+model FormTemplate {
+  id          String       @id @default(cuid())
+  slug        String       @unique
+  name        String
+  description String?
+  formKind    FormKind
+  active      Boolean      @default(true)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  inspections Inspection[]
+}
+
+model Inspection {
+  id                 String           @id @default(cuid())
+  reportNo           String?          @unique
+  formTemplateId     String?
+  formTemplate       FormTemplate?    @relation(fields: [formTemplateId], references: [id])
+  formDataJson       String           @default("{}")
+  propertyId         String?
+  property           Property?        @relation(fields: [propertyId], references: [id])
+  assignedToId       String?
+  assignedTo         User?            @relation("AssignedInspections", fields: [assignedToId], references: [id])
+  createdById        String
+  createdBy          User             @relation("CreatedInspections", fields: [createdById], references: [id])
+  reviewedById       String?
+  reviewedAt         DateTime?
+  adminNotes         String?
+  status             InspectionStatus @default(DRAFT)
+  inspectionDate     DateTime?
+  lastInspectionDate DateTime?
+  buildingName       String
+  buildingAddress    String
+  contactPerson      String?
+  contactAddress     String?
+  phone              String?
+  fax                String?
+  email              String?
+  buildingType       BuildingType?
+  pumpMake           String?
+  driveType          DriveType?
+  modelNo            String?
+  gpm                Float?
+  psi                Float?
+  rpm                Float?
+  feedingJson        String           @default("{}")
+  checklistJson      String           @default("[]")
+  satisfactory       Boolean?
+  failureReason      String?
+  notes              String?
+  inspectorName      String?
+  approvalDate       DateTime?
+  signatureData            String?
+  customerSignatureData    String?
+  pdfPath                  String?
+  submittedAt        DateTime?
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+  photos             InspectionPhoto[]
+}
+
+model InspectionPhoto {
+  id           String     @id @default(cuid())
+  inspectionId String
+  inspection   Inspection @relation(fields: [inspectionId], references: [id], onDelete: Cascade)
+  url          String
+  tag          PhotoTag   @default(GENERAL)
+  sortOrder    Int        @default(0)
+  createdAt    DateTime   @default(now())
+}
+
+model AmcContract {
+  id           String       @id @default(cuid())
+  propertyId   String
+  property     Property     @relation(fields: [propertyId], references: [id])
+  customerId   String?
+  frequency    AmcFrequency @default(QUARTERLY)
+  startDate    DateTime
+  endDate      DateTime?
+  nextDueDate  DateTime
+  assignedToId String?
+  assignedTo   User?        @relation(fields: [assignedToId], references: [id])
+  notes        String?
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+}
+
+model ActivityLog {
+  id         String   @id @default(cuid())
+  userId     String?
+  user       User?    @relation(fields: [userId], references: [id])
+  action     String
+  entityType String
+  entityId   String?
+  metaJson   String   @default("{}")
+  createdAt  DateTime @default(now())
+}
