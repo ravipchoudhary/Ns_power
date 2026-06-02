@@ -24,59 +24,95 @@ export async function drawPdfCompanyHeader(
   options?: { formTitle?: string; formSubtitle?: string }
 ): Promise<number> {
   const pageWidth = doc.internal.pageSize.getWidth();
+  const margin = 14;
+  const gap = 8;
   let y = 10;
 
   const logo = await loadLogoDataUrl();
+  const logoW = 62;
+  const logoH = 18;
+  const logoX = margin;
+
   if (logo) {
-    const logoW = 70;
-    const logoH = 18;
-    doc.addImage(logo, "JPEG", (pageWidth - logoW) / 2, y, logoW, logoH);
-    y += logoH + 4;
-  } else {
-    doc.setFontSize(16);
-    doc.setTextColor(118, 185, 0);
-    doc.text(COMPANY.name, pageWidth / 2, y + 4, { align: "center" });
-    y += 10;
+    doc.addImage(logo, "JPEG", logoX, y, logoW, logoH);
   }
 
-  doc.setFontSize(7);
+  const textX = logo ? logoX + logoW + gap : margin;
+  const textWidth = pageWidth - margin - textX;
+
+  // Right block: title + address/contact like the paper header sample
+  const title = options?.formTitle || COMPANY.name;
+  doc.setTextColor(0, 0, 0);
+  doc.setFont("times", "bold");
+  doc.setFontSize(11);
+  doc.text(title, textX + textWidth / 2, y + 4.2, { align: "center" });
+
+  doc.setFont("times", "normal");
+  doc.setFontSize(6.6);
   doc.setTextColor(60, 60, 60);
-  const taglines = doc.splitTextToSize(COMPANY.tagline, pageWidth - 30);
-  doc.text(taglines, pageWidth / 2, y, { align: "center" });
-  y += taglines.length * 3.5 + 1;
 
-  doc.text(COMPANY.address, pageWidth / 2, y, { align: "center" });
-  y += 3.5;
-  doc.text(
-    `Tel: ${COMPANY.landline} | Mob: ${COMPANY.mobile}`,
-    pageWidth / 2,
-    y,
-    { align: "center" }
-  );
-  y += 3.5;
-  doc.text(
-    `${COMPANY.email} | ${COMPANY.website}`,
-    pageWidth / 2,
-    y,
-    { align: "center" }
-  );
-  y += 6;
+  let detailsY = y + 7.6;
+  const lineGap = 3.1;
 
-  if (options?.formTitle) {
-    doc.setFontSize(12);
-    doc.setTextColor(0, 0, 0);
-    doc.setFont("helvetica", "bold");
-    doc.text(options.formTitle, pageWidth / 2, y, { align: "center" });
-    y += 5;
-    if (options.formSubtitle) {
-      doc.setFontSize(10);
-      doc.setFont("helvetica", "normal");
-      doc.text(options.formSubtitle, pageWidth / 2, y, { align: "center" });
-      y += 5;
+  const drawBoldLabelLine = (label: string, value: string) => {
+    doc.setFont("times", "bold");
+    const labelW = doc.getTextWidth(label);
+    doc.setFont("times", "normal");
+    const valueLines = doc.splitTextToSize(value, textWidth - labelW);
+
+    // First line: label (bold) + first chunk of value (normal)
+    const first = valueLines.shift() || "";
+    const fullW =
+      labelW + doc.getTextWidth(first || "");
+    const startX = textX + (textWidth - fullW) / 2;
+
+    doc.setFont("times", "bold");
+    doc.text(label, startX, detailsY);
+    doc.setFont("times", "normal");
+    doc.text(first, startX + labelW, detailsY);
+    detailsY += lineGap;
+
+    // Wrapped lines: value only, centered to right column
+    for (const l of valueLines) {
+      doc.text(l, textX + textWidth / 2, detailsY, { align: "center" });
+      detailsY += lineGap;
     }
-  }
+  };
 
-  return y;
+  drawBoldLabelLine("Address : ", COMPANY.address);
+  drawBoldLabelLine(
+    "Contact us : ",
+    `${COMPANY.landline}  Mob. : ${COMPANY.mobile}`
+  );
+  drawBoldLabelLine(
+    "Email id : ",
+    `${COMPANY.email}  Web : ${COMPANY.website}`
+  );
+
+  // Green bar tagline (matches sample style)
+  const barY = Math.max(y + logoH, detailsY) + 1.6;
+  const barH = 6;
+  doc.setFillColor(118, 185, 0);
+  doc.rect(margin, barY, pageWidth - margin * 2, barH, "F");
+
+  // Right diagonal stripes hint
+  const stripeX = pageWidth - margin - 16;
+  doc.setDrawColor(255, 255, 255);
+  doc.setLineWidth(0.8);
+  for (let i = 0; i < 4; i++) {
+    const x = stripeX + i * 3.2;
+    doc.line(x, barY + barH, x + 6, barY);
+  }
+  doc.setDrawColor(0, 0, 0);
+
+  doc.setFont("times", "bold");
+  doc.setFontSize(8.6);
+  doc.setTextColor(255, 255, 255);
+  const barText = options?.formSubtitle || COMPANY.tagline;
+  doc.text(barText, pageWidth / 2, barY + 4.2, { align: "center" });
+  doc.setTextColor(0, 0, 0);
+
+  return barY + barH + 6;
 }
 
 export function drawPdfPageFooter(doc: jsPDF, extraLine?: string) {

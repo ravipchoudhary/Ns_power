@@ -101,6 +101,7 @@ export default async function InspectionDetailPage({
             customerSignatureData:
               inspection.customerSignatureData ?? undefined,
             formDataJson: inspection.formDataJson,
+            photos: inspection.photos,
             pdfPath: inspection.pdfPath ?? undefined,
             adminNotes: inspection.adminNotes ?? undefined,
           }}

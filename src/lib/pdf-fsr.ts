@@ -123,6 +123,17 @@ export async function generateFsrPdf(
     }
   }
 
+  if (data.customerSignatureData?.startsWith("data:image")) {
+    try {
+      doc.setFontSize(8);
+      doc.setTextColor(0, 0, 0);
+      doc.text("Customer Signature:", 110, y);
+      doc.addImage(data.customerSignatureData, "PNG", 110, y + 4, 40, 18);
+    } catch {
+      // Skip if customer signature cannot be embedded
+    }
+  }
+
   await appendPhotosToPdf(doc, photos);
 
   drawPdfPageFooter(doc);
