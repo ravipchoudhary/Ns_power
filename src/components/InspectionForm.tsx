@@ -81,7 +81,9 @@ export function InspectionForm({
   const [id, setId] = useState(initial?.id);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
-  const [pdfUrl, setPdfUrl] = useState(initial?.pdfPath);
+  const [pdfUrl, setPdfUrl] = useState(
+    initial?.pdfPath || (initial?.id ? `/api/inspections/${initial.id}/pdf` : "")
+  );
   const [whatsappUrl, setWhatsappUrl] = useState("");
 
   const [reportNo, setReportNo] = useState(initial?.reportNo || "");
@@ -202,17 +204,21 @@ export function InspectionForm({
     const res = await fetch(`/api/inspections/${inspectionId}/submit`, {
       method: "POST",
     });
-    const data = await res.json();
+    let data: any = null;
+    try {
+      data = await res.json();
+    } catch {
+      const text = await res.text();
+      data = text ? { error: text } : null;
+    }
     setSaving(false);
     if (!res.ok) {
       setMessage(data.error || "Submit failed");
       return;
     }
-    setPdfUrl(data.pdfUrl);
-    setWhatsappUrl(data.whatsappShareUrl);
-    setMessage(data.message || submitSuccessMessage(userRole));
     if (data.pdfUrl) setPdfUrl(data.pdfUrl);
     if (data.whatsappShareUrl) setWhatsappUrl(data.whatsappShareUrl);
+    setMessage(data.message || submitSuccessMessage(userRole));
     router.refresh();
   }
 

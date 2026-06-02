@@ -55,9 +55,14 @@ export async function appendPhotosToPdf(
   let rowY = y;
 
   for (const photo of photos) {
-    const relative = photo.url.replace(/^\//, "");
-    const filePath = path.join(process.cwd(), "public", relative);
-    const dataUrl = await loadImageDataUrl(filePath);
+    let dataUrl: string | null = null;
+    if (photo.url.startsWith("data:image")) {
+      dataUrl = photo.url;
+    } else {
+      const relative = photo.url.replace(/^\//, "");
+      const filePath = path.join(process.cwd(), "public", relative);
+      dataUrl = await loadImageDataUrl(filePath);
+    }
     if (!dataUrl) continue;
 
     if (rowY + imgHeight > pageHeight - 20) {

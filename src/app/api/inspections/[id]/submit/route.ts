@@ -1,5 +1,3 @@
-import { writeFile, mkdir } from "fs/promises";
-import path from "path";
 import { prisma } from "@/lib/db";
 import { requireAuth } from "@/lib/api";
 import { json, error } from "@/lib/api";
@@ -9,103 +7,137 @@ import { needsAdminApproval } from "@/lib/inspection-workflow";
 import { buildInspectionPdfBuffer } from "@/lib/inspection-pdf";
 import { generateReportNo } from "@/lib/report-number";
 
-async function writeInspectionPdf(id: string) {
-  const pdfBuffer = await buildInspectionPdfBuffer(id);
-  const reportsDir = path.join(process.cwd(), "public", "reports");
-  await mkdir(reportsDir, { recursive: true });
-  const pdfPath = `/reports/${id}.pdf`;
-  await writeFile(
-    path.join(process.cwd(), "public", "reports", `${id}.pdf`),
-    pdfBuffer
-  );
-  return pdfPath;
-}
-
 export async function POST(
   _request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const session = await requireAuth();
-  if (session instanceof Response) return session;
-  const { id } = await params;
+  try {
+    const session = await requireAuth();
+    if (session instanceof Response) return session;
+    const { id } = await params;
 
-  const inspection = await prisma.inspection.findUnique({
-    where: { id },
-    include: { formTemplate: true },
-  });
-  if (!inspection) return error("Not found", 404);
+    const inspection = await prisma.inspection.findUnique({
+      where: { id },
+      include: { formTemplate: true },
+    });
+    if (!inspection) return error("Not found", 404);
 
-  if (
-    session.role !== "ADMIN" &&
-    inspection.assignedToId !== session.userId &&
-    inspection.createdById !== session.userId
-  ) {
-    return error("Forbidden", 403);
-  }
-
-  if (!["IN_PROGRESS", "REJECTED", "DRAFT", "ASSIGNED"].includes(inspection.status)) {
-    return error("This inspection cannot be submitted");
-  }
-
-  const isFsr = inspection.formTemplate?.formKind === "FSR";
-
-  if (isFsr) {
-    const fsrError = validateFsrForm(parseFsrFormData(inspection.formDataJson));
-    if (fsrError) return error(fsrError);
-    if (!inspection.buildingName?.trim()) {
-      return error("Customer name is required");
-    }
-    if (!inspection.signatureData) {
-      return error("Service representative signature is required");
-    }
-  } else {
-    const checklist = JSON.parse(
-      inspection.checklistJson || "[]"
-    ) as ChecklistEntry[];
-
-    if (checklist.length < CHECKLIST_ITEMS.length) {
-      return error("Please complete all checklist items before submitting");
+    if (
+      session.role !== "ADMIN" &&
+      inspection.assignedToId !== session.userId &&
+      inspection.createdById !== session.userId
+    ) {
+      return error("Forbidden", 403);
     }
 
     if (
-      inspection.satisfactory === null ||
-      inspection.satisfactory === undefined
+      !["IN_PROGRESS", "REJECTED", "DRAFT", "ASSIGNED"].includes(
+        inspection.status
+      )
     ) {
-      return error("Please mark inspection as satisfactory or not");
+      return error("This inspection cannot be submitted");
     }
 
-    if (inspection.satisfactory === false && !inspection.failureReason) {
-      return error("Please provide reason for unsatisfactory inspection");
+    const isFsr = inspection.formTemplate?.formKind === "FSR";
+
+    if (isFsr) {
+      const fsrError = validateFsrForm(
+        parseFsrFormData(inspection.formDataJson)
+      );
+      if (fsrError) return error(fsrError);
+      if (!inspection.buildingName?.trim()) {
+        return error("Customer name is required");
+      }
+      if (!inspection.signatureData) {
+        return error("Service representative signature is required");
+      }
+    } else {
+      const checklist = JSON.parse(
+        inspection.checklistJson || "[]"
+      ) as ChecklistEntry[];
+
+      if (checklist.length < CHECKLIST_ITEMS.length) {
+        return error(
+          "Please complete all checklist items before submitting"
+        );
+      }
+
+      if (
+        inspection.satisfactory === null ||
+        inspection.satisfactory === undefined
+      ) {
+        return error("Please mark inspection as satisfactory or not");
+      }
+
+      if (inspection.satisfactory === false && !inspection.failureReason) {
+        return error(
+          "Please provide reason for unsatisfactory inspection"
+        );
+      }
     }
-  }
 
-  let reportNo = inspection.reportNo;
-  if (!reportNo) {
-    reportNo = await generateReportNo(inspection.formTemplate?.formKind ?? null);
-    await prisma.inspection.update({
-      where: { id },
-      data: { reportNo },
-    });
-  }
+    let reportNo = inspection.reportNo;
+    if (!reportNo) {
+      reportNo = await generateReportNo(
+        inspection.formTemplate?.formKind ?? null
+      );
+      await prisma.inspection.update({
+        where: { id },
+        data: { reportNo },
+      });
+    }
 
-  const pdfPath = await writeInspectionPdf(id);
-  const awaitingApproval = needsAdminApproval(session.role);
+    // Serverless safe: generate PDF for validation, but do not write to public/
+    await buildInspectionPdfBuffer(id);
+    const pdfPath = `/api/inspections/${id}/pdf`;
+    const awaitingApproval = needsAdminApproval(session.role);
 
-  if (awaitingApproval) {
+    if (awaitingApproval) {
+      const updated = await prisma.inspection.update({
+        where: { id },
+        data: {
+          status: "PENDING_APPROVAL",
+          submittedAt: new Date(),
+          pdfPath,
+          reportNo,
+        },
+      });
+
+      await prisma.activityLog.create({
+        data: {
+          userId: session.userId,
+          action: "SUBMIT_PENDING",
+          entityType: "Inspection",
+          entityId: id,
+          metaJson: JSON.stringify({ pdfPath }),
+        },
+      });
+
+      return json({
+        inspection: updated,
+        pendingApproval: true,
+        pdfUrl: pdfPath,
+        message: "Submitted for admin approval. PDF is ready to download.",
+      });
+    }
+
     const updated = await prisma.inspection.update({
       where: { id },
       data: {
-        status: "PENDING_APPROVAL",
+        status: "COMPLETED",
         submittedAt: new Date(),
         pdfPath,
         reportNo,
+        approvalDate: inspection.approvalDate || new Date(),
+        reviewedById: session.userId,
+        reviewedAt: new Date(),
       },
     });
 
     await prisma.activityLog.create({
       data: {
         userId: session.userId,
-        action: "SUBMIT_PENDING",
+        action: "SUBMIT",
         entityType: "Inspection",
         entityId: id,
         metaJson: JSON.stringify({ pdfPath }),
@@ -114,40 +146,17 @@ export async function POST(
 
     return json({
       inspection: updated,
-      pendingApproval: true,
       pdfUrl: pdfPath,
-      message: "Submitted for admin approval. PDF is ready to download.",
+      whatsappShareUrl: buildWhatsAppUrl(
+        inspection.buildingName,
+        pdfPath
+      ),
     });
+  } catch (e) {
+    const message =
+      e instanceof Error ? e.message : "Failed to submit inspection";
+    return error(message, 500);
   }
-
-  const updated = await prisma.inspection.update({
-    where: { id },
-    data: {
-      status: "COMPLETED",
-      submittedAt: new Date(),
-      pdfPath,
-      reportNo,
-      approvalDate: inspection.approvalDate || new Date(),
-      reviewedById: session.userId,
-      reviewedAt: new Date(),
-    },
-  });
-
-  await prisma.activityLog.create({
-    data: {
-      userId: session.userId,
-      action: "SUBMIT",
-      entityType: "Inspection",
-      entityId: id,
-      metaJson: JSON.stringify({ pdfPath }),
-    },
-  });
-
-  return json({
-    inspection: updated,
-    pdfUrl: pdfPath,
-    whatsappShareUrl: buildWhatsAppUrl(inspection.buildingName, pdfPath),
-  });
 }
 
 function buildWhatsAppUrl(buildingName: string, pdfPath: string) {

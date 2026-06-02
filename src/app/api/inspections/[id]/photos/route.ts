@@ -1,4 +1,3 @@
-import { writeFile, mkdir } from "fs/promises";
 import path from "path";
 import { prisma } from "@/lib/db";
 import { requireAuth } from "@/lib/api";
@@ -24,16 +23,19 @@ export async function POST(
   const bytes = await file.arrayBuffer();
   const buffer = Buffer.from(bytes);
   const ext = path.extname(file.name) || ".jpg";
-  const filename = `${id}-${Date.now()}${ext}`;
-
-  const uploadDir = path.join(process.cwd(), "public", "uploads");
-  await mkdir(uploadDir, { recursive: true });
-  await writeFile(path.join(uploadDir, filename), buffer);
+  const mime =
+    file.type ||
+    (ext.toLowerCase() === ".png"
+      ? "image/png"
+      : ext.toLowerCase() === ".webp"
+        ? "image/webp"
+        : "image/jpeg");
+  const dataUrl = `data:${mime};base64,${buffer.toString("base64")}`;
 
   const photo = await prisma.inspectionPhoto.create({
     data: {
       inspectionId: id,
-      url: `/uploads/${filename}`,
+      url: dataUrl,
       tag: tag as "BEFORE" | "AFTER" | "GENERAL",
       sortOrder: await prisma.inspectionPhoto.count({ where: { inspectionId: id } }),
     },

@@ -62,7 +62,9 @@ export function FsrForm({
   const [id, setId] = useState(initial?.id);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
-  const [pdfUrl, setPdfUrl] = useState(initial?.pdfPath);
+  const [pdfUrl, setPdfUrl] = useState(
+    initial?.pdfPath || (initial?.id ? `/api/inspections/${initial.id}/pdf` : "")
+  );
   const [photos, setPhotos] = useState(initial?.photos || []);
   const [photoTag, setPhotoTag] = useState<"BEFORE" | "AFTER" | "GENERAL">(
     "GENERAL"
@@ -172,7 +174,13 @@ export function FsrForm({
     const res = await fetch(`/api/inspections/${inspectionId}/submit`, {
       method: "POST",
     });
-    const data = await res.json();
+    let data: any = null;
+    try {
+      data = await res.json();
+    } catch {
+      const text = await res.text();
+      data = text ? { error: text } : null;
+    }
     setSaving(false);
     if (!res.ok) {
       setMessage(data.error || "Submit failed");

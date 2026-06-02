@@ -145,9 +145,9 @@ export async function DELETE(
 
   for (const photo of inspection.photos) {
     try {
-      await unlink(
-        path.join(process.cwd(), "public", photo.url.replace(/^\//, ""))
-      );
+      if (photo.url.startsWith("data:image")) continue;
+      if (!photo.url.startsWith("/uploads/")) continue;
+      await unlink(path.join(process.cwd(), "public", photo.url.replace(/^\//, "")));
     } catch {
       // File may already be missing on disk
     }
@@ -155,9 +155,12 @@ export async function DELETE(
 
   if (inspection.pdfPath) {
     try {
-      await unlink(
-        path.join(process.cwd(), "public", inspection.pdfPath.replace(/^\//, ""))
-      );
+      // pdfPath might now be an API URL (/api/inspections/[id]/pdf) — do not unlink.
+      if (inspection.pdfPath.startsWith("/reports/")) {
+        await unlink(
+          path.join(process.cwd(), "public", inspection.pdfPath.replace(/^\//, ""))
+        );
+      }
     } catch {
       // PDF file may already be missing on disk
     }
