@@ -460,6 +460,7 @@ export type InspectionPhotoCreateOrConnectWithoutInspectionInput = {
 
 export type InspectionPhotoCreateManyInspectionInputEnvelope = {
   data: Prisma.InspectionPhotoCreateManyInspectionInput | Prisma.InspectionPhotoCreateManyInspectionInput[]
+  skipDuplicates?: boolean
 }
 
 export type InspectionPhotoUpsertWithWhereUniqueWithoutInspectionInput = {
@@ -1250,6 +1251,7 @@ export type InspectionPhotoCreateManyArgs<ExtArgs extends runtime.Types.Extensio
    * The data used to create many InspectionPhotos.
    */
   data: Prisma.InspectionPhotoCreateManyInput | Prisma.InspectionPhotoCreateManyInput[]
+  skipDuplicates?: boolean
 }
 
 /**
@@ -1268,6 +1270,7 @@ export type InspectionPhotoCreateManyAndReturnArgs<ExtArgs extends runtime.Types
    * The data used to create many InspectionPhotos.
    */
   data: Prisma.InspectionPhotoCreateManyInput | Prisma.InspectionPhotoCreateManyInput[]
+  skipDuplicates?: boolean
   /**
    * Choose, which related nodes to fetch as well
    */

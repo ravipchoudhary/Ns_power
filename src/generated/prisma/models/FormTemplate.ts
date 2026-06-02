@@ -1228,6 +1228,7 @@ export type FormTemplateCreateManyArgs<ExtArgs extends runtime.Types.Extensions.
    * The data used to create many FormTemplates.
    */
   data: Prisma.FormTemplateCreateManyInput | Prisma.FormTemplateCreateManyInput[]
+  skipDuplicates?: boolean
 }
 
 /**
@@ -1246,6 +1247,7 @@ export type FormTemplateCreateManyAndReturnArgs<ExtArgs extends runtime.Types.Ex
    * The data used to create many FormTemplates.
    */
   data: Prisma.FormTemplateCreateManyInput | Prisma.FormTemplateCreateManyInput[]
+  skipDuplicates?: boolean
 }
 
 /**
