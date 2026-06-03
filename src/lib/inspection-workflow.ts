@@ -8,6 +8,14 @@ export function inspectorCanEdit(status: string) {
   return ["DRAFT", "ASSIGNED", "IN_PROGRESS", "REJECTED"].includes(status);
 }
 
+/** Who can change form fields on the inspection detail page */
+export function canEditInspectionForm(role: string, status: string) {
+  if (role === "ADMIN") {
+    return status !== "COMPLETED";
+  }
+  return inspectorCanEdit(status);
+}
+
 export function isFinalized(status: string) {
   return status === "COMPLETED";
 }

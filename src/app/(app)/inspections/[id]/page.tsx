@@ -7,7 +7,7 @@ import { AdminApprovalBar } from "@/components/AdminApprovalBar";
 import { DeleteInspectionButton } from "@/components/DeleteInspectionButton";
 import { Badge } from "@/components/ui";
 import { statusLabel, statusTone } from "@/lib/utils";
-import { inspectorCanEdit } from "@/lib/inspection-workflow";
+import { canEditInspectionForm } from "@/lib/inspection-workflow";
 import { mergeFeedingOptions, normalizeChecklist } from "@/lib/checklist";
 import { generateReportNo } from "@/lib/report-number";
 
@@ -52,7 +52,7 @@ export default async function InspectionDetailPage({
     });
   }
 
-  const readOnly = !inspectorCanEdit(inspection.status);
+  const formEditable = canEditInspectionForm(session.role, inspection.status);
   const isFsr = inspection.formTemplate?.formKind === "FSR";
   const title = isFsr
     ? inspection.buildingName || "Field Service Report"
@@ -77,6 +77,14 @@ export default async function InspectionDetailPage({
         )}
       </div>
 
+      {inspection.status === "PENDING_APPROVAL" &&
+        session.role === "INSPECTOR" && (
+          <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-2 text-sm text-amber-900">
+            Submitted for approval. You can edit again only after admin rejects
+            it.
+          </div>
+        )}
+
       {session.role === "ADMIN" &&
         inspection.status === "PENDING_APPROVAL" && (
           <AdminApprovalBar inspectionId={inspection.id} />
@@ -85,7 +93,7 @@ export default async function InspectionDetailPage({
       {isFsr ? (
         <FsrForm
           userRole={session.role}
-          readOnly={readOnly}
+          readOnly={!formEditable}
           initial={{
             id: inspection.id,
             reportNo: reportNo ?? undefined,
@@ -108,7 +116,7 @@ export default async function InspectionDetailPage({
         />
       ) : (
         <InspectionForm
-          readOnly={readOnly}
+          readOnly={!formEditable}
           userRole={session.role}
           formTemplateId={inspection.formTemplateId ?? undefined}
           initial={{

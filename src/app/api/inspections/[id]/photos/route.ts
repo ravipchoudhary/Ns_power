@@ -15,22 +15,28 @@ export async function POST(
   if (!inspection) return error("Not found", 404);
 
   const formData = await request.formData();
-  const file = formData.get("file") as File | null;
   const tag = (formData.get("tag") as string) || "GENERAL";
+  const raw = formData.get("file");
 
-  if (!file) return error("No file uploaded");
-
-  const bytes = await file.arrayBuffer();
-  const buffer = Buffer.from(bytes);
-  const ext = path.extname(file.name) || ".jpg";
-  const mime =
-    file.type ||
-    (ext.toLowerCase() === ".png"
-      ? "image/png"
-      : ext.toLowerCase() === ".webp"
-        ? "image/webp"
-        : "image/jpeg");
-  const dataUrl = `data:${mime};base64,${buffer.toString("base64")}`;
+  let dataUrl: string;
+  if (typeof raw === "string" && raw.startsWith("data:image")) {
+    dataUrl = raw;
+  } else if (raw instanceof File) {
+    const file = raw;
+    const bytes = await file.arrayBuffer();
+    const buffer = Buffer.from(bytes);
+    const ext = path.extname(file.name) || ".jpg";
+    const mime =
+      file.type ||
+      (ext.toLowerCase() === ".png"
+        ? "image/png"
+        : ext.toLowerCase() === ".webp"
+          ? "image/webp"
+          : "image/jpeg");
+    dataUrl = `data:${mime};base64,${buffer.toString("base64")}`;
+  } else {
+    return error("No file uploaded");
+  }
 
   const photo = await prisma.inspectionPhoto.create({
     data: {

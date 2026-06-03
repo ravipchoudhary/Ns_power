@@ -10,11 +10,9 @@ import {
   parseFsrFormData,
   type FsrFormData,
 } from "@/lib/fsr";
-import {
-  inspectorCanEdit,
-  submitSuccessMessage,
-} from "@/lib/inspection-workflow";
+import { submitSuccessMessage } from "@/lib/inspection-workflow";
 import { FormBrandHeader } from "@/components/FormBrandHeader";
+import { PhotoCaptureSection } from "@/components/PhotoCaptureSection";
 import {
   Button,
   FormSection,
@@ -112,10 +110,7 @@ export function FsrForm({
     []
   );
 
-  const disabled =
-    readOnly ||
-    !inspectorCanEdit(initial?.status || "DRAFT") ||
-    initial?.status === "COMPLETED";
+  const disabled = readOnly;
 
   const payload = useCallback(() => {
     let signatureData = initial?.signatureData;
@@ -191,20 +186,6 @@ export function FsrForm({
     router.refresh();
   }
 
-  async function uploadPhoto(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file || !id) return;
-    const fd = new FormData();
-    fd.append("file", file);
-    fd.append("tag", photoTag);
-    const res = await fetch(`/api/inspections/${id}/photos`, {
-      method: "POST",
-      body: fd,
-    });
-    const data = await res.json();
-    if (res.ok) setPhotos((p) => [...p, data.photo]);
-    e.target.value = "";
-  }
 
   return (
     <div className="mx-auto max-w-4xl space-y-5 pb-24">
@@ -632,44 +613,14 @@ export function FsrForm({
       </FormSection>
 
       <FormSection title="Photos">
-        {!disabled && id && (
-          <div className="mb-4 flex flex-wrap items-end gap-3">
-            <label className="text-sm">
-              Tag
-              <select
-                className="ml-2 rounded border px-2 py-1"
-                value={photoTag}
-                onChange={(e) =>
-                  setPhotoTag(e.target.value as typeof photoTag)
-                }
-              >
-                <option value="BEFORE">Before</option>
-                <option value="AFTER">After</option>
-                <option value="GENERAL">General</option>
-              </select>
-            </label>
-            <input type="file" accept="image/*" onChange={uploadPhoto} />
-          </div>
-        )}
-        {!id && (
-          <p className="text-sm text-gray-500">
-            Save draft first to upload photos.
-          </p>
-        )}
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-          {photos.map((p) => (
-            <div key={p.id} className="overflow-hidden rounded-lg border">
-              <img
-                src={p.url}
-                alt={`FSR photo ${p.tag}`}
-                className="h-24 w-full object-cover"
-              />
-              <p className="bg-gray-50 px-2 py-1 text-center text-xs">
-                {p.tag}
-              </p>
-            </div>
-          ))}
-        </div>
+        <PhotoCaptureSection
+          disabled={disabled}
+          inspectionId={id}
+          photoTag={photoTag}
+          onPhotoTagChange={setPhotoTag}
+          photos={photos}
+          onPhotoAdded={(photo) => setPhotos((p) => [...p, photo])}
+        />
       </FormSection>
 
       {!disabled && (
