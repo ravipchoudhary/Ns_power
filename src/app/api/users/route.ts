@@ -2,12 +2,18 @@ import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/db";
 import { requireAdmin, json, error } from "@/lib/api";
 
-export async function GET() {
+export async function GET(request: Request) {
   const session = await requireAdmin();
   if (session instanceof Response) return session;
 
+  const { searchParams } = new URL(request.url);
+  const role = searchParams.get("role");
+
+  const where: any = { active: true };
+  if (role) where.role = role;
+
   const users = await prisma.user.findMany({
-    where: { active: true },
+    where,
     select: { id: true, name: true, email: true, role: true, phone: true },
     orderBy: { name: "asc" },
   });

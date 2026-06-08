@@ -15,14 +15,81 @@
   --font-sans: var(--font-geist-sans);
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-geist-sans), system-ui, sans-serif;
+  overflow-x: hidden;
 }
 
 input,
 select,
 textarea {
   font-size: 16px;
+}
+
+/* Mobile touch optimizations */
+@supports (touch-action: manipulation) {
+  input,
+  select,
+  textarea,
+  button {
+    touch-action: manipulation;
+  }
+}
+
+/* Prevent double tap zoom on inputs */
+input[type="date"],
+input[type="number"],
+input[type="text"],
+input[type="email"],
+textarea,
+select {
+  font-size: 16px;
+}
+
+/* Canvas touch handling */
+canvas {
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
+/* Prevent scrolling while interacting with signature pad */
+.touch-none {
+  touch-action: none;
+}
+
+/* Mobile-specific styles */
+@media (max-width: 640px) {
+  body {
+    padding: 0;
+    overflow-x: hidden;
+  }
+
+  input,
+  select,
+  textarea {
+    font-size: 16px;
+  }
+
+  /* Prevent body scroll when mobile menu is open */
+  body.mobile-menu-open {
+    overflow: hidden;
+  }
+}
+
+/* Smooth sidebar transitions */
+aside {
+  will-change: transform;
+}
+
+/* Prevent horizontal scroll */
+* {
+  max-width: 100vw;
 }

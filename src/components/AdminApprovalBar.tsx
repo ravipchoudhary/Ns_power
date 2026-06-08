@@ -47,27 +47,27 @@ export function AdminApprovalBar({ inspectionId }: { inspectionId: string }) {
   }
 
   return (
-    <div className="mb-6 rounded-xl border border-amber-300 bg-amber-50 p-4">
-      <h2 className="font-semibold text-amber-900">Admin review required</h2>
-      <p className="mt-1 text-sm text-amber-800">
+    <div className="mb-6 rounded-xl border border-amber-300 bg-amber-50 p-3 sm:p-4">
+      <h2 className="text-base sm:text-lg font-semibold text-amber-900">Admin review required</h2>
+      <p className="mt-1 text-xs sm:text-sm text-amber-800">
         Inspector has submitted this report. Approve to generate PDF or reject
         with feedback.
       </p>
       <Textarea
         label="Rejection notes (if rejecting)"
         className="mt-3"
-        rows={2}
+        rows={3}
         value={notes}
         onChange={(e) => setNotes(e.target.value)}
       />
       {message && (
-        <p className="mt-2 text-sm text-red-600">{message}</p>
+        <p className="mt-2 text-xs sm:text-sm text-red-600">{message}</p>
       )}
-      <div className="mt-3 flex flex-wrap gap-2">
-        <Button onClick={approve} disabled={busy}>
+      <div className="mt-3 flex flex-col gap-2 sm:flex-row">
+        <Button onClick={approve} disabled={busy} className="w-full sm:w-auto">
           Approve & Generate PDF
         </Button>
-        <Button variant="danger" onClick={reject} disabled={busy}>
+        <Button variant="danger" onClick={reject} disabled={busy} className="w-full sm:w-auto">
           Reject
         </Button>
       </div>

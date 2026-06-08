@@ -103,11 +103,10 @@ export function AdminPanel() {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 sm:space-y-8">
       <div>
-        <h1 className="text-2xl font-bold">Admin Panel</h1>
-        <p className="text-gray-500">Approvals, inspectors & assignments</p>
-      </div>
+        <h1 className="text-xl sm:text-2xl font-bold">Admin Panel</h1>
+        <p className="text-xs sm:text-sm text-gray-500\">Approvals, inspectors & assignments</p>\n      </div>
 
       {msg && (
         <div className="rounded-lg border border-green-200 bg-green-50 px-4 py-2 text-sm text-green-800">
@@ -115,24 +114,24 @@ export function AdminPanel() {
         </div>
       )}
 
-      <div className="grid gap-4 sm:grid-cols-4">
+      <div className="grid gap-4 grid-cols-2 md:grid-cols-4">
         <Card>
-          <p className="text-sm text-gray-500">Pending Approval</p>
-          <p className="text-2xl font-bold text-amber-600">{pending.length}</p>
+          <p className="text-xs sm:text-sm text-gray-500">Pending Approval</p>
+          <p className="text-xl sm:text-2xl font-bold text-amber-600">{pending.length}</p>
         </Card>
         <Card>
-          <p className="text-sm text-gray-500">Inspectors</p>
-          <p className="text-2xl font-bold">
+          <p className="text-xs sm:text-sm text-gray-500">Inspectors</p>
+          <p className="text-xl sm:text-2xl font-bold">
             {users.filter((u) => u.role === "INSPECTOR").length}
           </p>
         </Card>
         <Card>
-          <p className="text-sm text-gray-500">Form Categories</p>
-          <p className="text-2xl font-bold">{templates.length}</p>
+          <p className="text-xs sm:text-sm text-gray-500">Form Categories</p>
+          <p className="text-xl sm:text-2xl font-bold">{templates.length}</p>
         </Card>
         <Card>
-          <p className="text-sm text-gray-500">Total Records</p>
-          <p className="text-2xl font-bold">{inspections.length}</p>
+          <p className="text-xs sm:text-sm text-gray-500">Total Records</p>
+          <p className="text-xl sm:text-2xl font-bold">{inspections.length}</p>
         </Card>
       </div>
 
@@ -206,16 +205,17 @@ export function AdminPanel() {
       </Card>
 
       <Card title="Team">
-        <ul className="divide-y">
+        <div className="space-y-3 sm:divide-y">
           {users.map((u) => (
-            <li
+            <div
               key={u.id}
-              className="flex flex-wrap items-center justify-between gap-2 py-2 text-sm"
+              className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 py-2 sm:py-3 text-xs sm:text-sm"
             >
-              <span>
-                {u.name} — {u.email}
-                {u.phone ? ` · ${u.phone}` : ""}
-              </span>
+              <div className="flex-1 min-w-0">
+                <p className="font-medium text-gray-900">{u.name}</p>
+                <p className="text-gray-600 truncate">{u.email}</p>
+                {u.phone && <p className="text-gray-500 text-xs">{u.phone}</p>}
+              </div>
               <div className="flex items-center gap-2">
                 <Badge tone={u.role === "ADMIN" ? "blue" : "gray"}>
                   {u.role}
@@ -224,26 +224,106 @@ export function AdminPanel() {
                   <Button
                     type="button"
                     variant="ghost"
-                    className="px-2 text-red-600 hover:bg-red-50"
+                    className="px-2 py-1 text-xs sm:text-sm text-red-600 hover:bg-red-50"
                     onClick={() => deleteInspector(u.id, u.name)}
                   >
                     Delete
                   </Button>
                 )}
               </div>
-            </li>
+            </div>
           ))}
-        </ul>
+        </div>
       </Card>
 
       <Card title="All Inspections">
-        <Input
-          placeholder="Filter by name..."
-          value={q}
-          onChange={(e) => setQ(e.target.value)}
-          className="mb-4 max-w-sm"
-        />
-        <div className="overflow-x-auto">
+        <div className="mb-4 grid gap-2 sm:flex sm:flex-wrap sm:gap-3">
+          <Input
+            placeholder="Filter by name..."
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            className="w-full sm:max-w-sm"
+          />
+        </div>
+        {/* Mobile Card View */}
+        <div className="space-y-3 md:hidden">
+          {filtered.map((row) => (
+            <div
+              key={row.id}
+              className="rounded-lg border border-gray-200 bg-white p-4 space-y-3"
+            >
+              <div className="flex items-start justify-between gap-2">
+                <div className="flex-1 min-w-0">
+                  <p className="font-semibold text-gray-900 truncate">
+                    {row.buildingName}
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    {row.formTemplate?.name || "—"}
+                  </p>
+                </div>
+                <Badge tone={statusTone(row.status)}>
+                  {statusLabel(row.status)}
+                </Badge>
+              </div>
+              <div className="text-xs space-y-1 text-gray-600">
+                <p>
+                  <span className="font-medium">Date:</span>{" "}
+                  {row.inspectionDate
+                    ? format(new Date(row.inspectionDate), "dd MMM yyyy")
+                    : "—"}
+                </p>
+                <p>
+                  <span className="font-medium">Assigned:</span>{" "}
+                  {row.assignedTo?.name || "—"}
+                </p>
+              </div>
+              <div className="flex flex-col gap-2">
+                {assigning === row.id ? (
+                  <select
+                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+                    defaultValue={row.assignedToId || ""}
+                    onChange={(e) => assign(row.id, e.target.value)}
+                  >
+                    <option value="">Select Inspector</option>
+                    {users
+                      .filter((u) => u.role === "INSPECTOR")
+                      .map((u) => (
+                        <option key={u.id} value={u.id}>
+                          {u.name}
+                        </option>
+                      ))}
+                  </select>
+                ) : (
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    className="w-full text-xs sm:text-sm"
+                    onClick={() => setAssigning(row.id)}
+                  >
+                    Assign
+                  </Button>
+                )}
+                <div className="flex gap-2">
+                  <Link href={`/inspections/${row.id}`} className="flex-1">
+                    <Button variant="secondary" className="w-full text-xs sm:text-sm">
+                      View
+                    </Button>
+                  </Link>
+                  <DeleteInspectionButton
+                    inspectionId={row.id}
+                    label="Delete"
+                    redirectTo="/admin"
+                    variant="ghost"
+                    className="px-2 text-red-600 hover:bg-red-50"
+                  />
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Desktop Table View */}
+        <div className="hidden md:block overflow-x-auto">
           <table className="w-full text-left text-sm">
             <thead>
               <tr className="border-b text-gray-500">

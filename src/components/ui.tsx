@@ -17,7 +17,7 @@ export function Button({
   return (
     <button
       className={cn(
-        "inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-medium transition disabled:opacity-50",
+        "inline-flex items-center justify-center rounded-lg px-3 py-2 text-sm font-medium transition disabled:opacity-50 sm:px-4 touch-action-manipulation",
         variants[variant],
         className
       )}
@@ -36,11 +36,11 @@ export function Input({
   return (
     <label className="block space-y-1">
       {label && (
-        <span className="text-sm font-medium text-gray-700">{label}</span>
+        <span className="text-xs sm:text-sm font-medium text-gray-700">{label}</span>
       )}
       <input
         className={cn(
-          "w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-[#76B900] focus:outline-none focus:ring-1 focus:ring-[#76B900]",
+          "w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm sm:text-base focus:border-[#76B900] focus:outline-none focus:ring-1 focus:ring-[#76B900]",
           className
         )}
         {...props}
@@ -57,11 +57,11 @@ export function Textarea({
   return (
     <label className="block space-y-1">
       {label && (
-        <span className="text-sm font-medium text-gray-700">{label}</span>
+        <span className="text-xs sm:text-sm font-medium text-gray-700">{label}</span>
       )}
       <textarea
         className={cn(
-          "w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-[#76B900] focus:outline-none focus:ring-1 focus:ring-[#76B900]",
+          "w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm sm:text-base focus:border-[#76B900] focus:outline-none focus:ring-1 focus:ring-[#76B900]",
           className
         )}
         {...props}
@@ -131,11 +131,11 @@ export function FormSection({
 }) {
   return (
     <section className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
-      <div className="border-b border-[#76B900]/20 bg-gradient-to-r from-[#76B900]/10 to-white px-5 py-3">
+      <div className="border-b border-[#76B900]/20 bg-gradient-to-r from-[#76B900]/10 to-white px-3 py-2 sm:px-5 sm:py-3">
         <h2 className="text-base font-semibold text-gray-900">{title}</h2>
         {subtitle && <p className="mt-0.5 text-xs text-gray-500">{subtitle}</p>}
       </div>
-      <div className="space-y-4 p-5">{children}</div>
+      <div className="space-y-4 p-3 sm:p-5">{children}</div>
     </section>
   );
 }

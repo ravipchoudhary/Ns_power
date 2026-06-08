@@ -6,9 +6,10 @@ const globalForPrisma = globalThis as unknown as { prisma: PrismaClient };
 const connectionString = process.env.DATABASE_URL;
 // Never throw at import-time (Vercel cold starts). If DATABASE_URL is missing,
 // use a dummy connection string. The real error will surface at query time.
+// Using sslmode=verify-full for security (avoid deprecated modes like 'require' or 'prefer')
 const safeConnectionString =
   connectionString ||
-  "postgres://invalid:invalid@localhost:5432/invalid?sslmode=disable";
+  "postgres://invalid:invalid@localhost:5432/invalid?sslmode=verify-full";
 const adapter = new PrismaPg({ connectionString: safeConnectionString });
 
 export const prisma =

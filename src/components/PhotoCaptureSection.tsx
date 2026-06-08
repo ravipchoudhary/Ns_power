@@ -103,11 +103,11 @@ export function PhotoCaptureSection({
   return (
     <div className="space-y-4">
       {!disabled && (
-        <div className="flex flex-wrap items-end gap-3">
-          <label className="text-sm text-gray-700">
-            Tag
+        <div className="flex flex-col sm:flex-row sm:items-end gap-2 sm:gap-3">
+          <label className="text-sm text-gray-700 flex items-center gap-2">
+            <span>Tag</span>
             <select
-              className="ml-2 rounded-lg border border-gray-300 px-2 py-1.5 text-sm"
+              className="rounded-lg border border-gray-300 px-2.5 py-2 text-sm"
               value={photoTag}
               onChange={(e) =>
                 onPhotoTagChange(e.target.value as typeof photoTag)
@@ -129,7 +129,7 @@ export function PhotoCaptureSection({
       )}
 
       {!disabled && inspectionId && (
-        <div className="flex flex-wrap gap-3">
+        <div className="flex flex-col gap-2 sm:flex-row sm:gap-3">
           <input
             ref={cameraInputRef}
             type="file"
@@ -150,24 +150,26 @@ export function PhotoCaptureSection({
             variant="secondary"
             disabled={uploading}
             onClick={() => cameraInputRef.current?.click()}
-            className="inline-flex items-center gap-2"
+            className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2"
           >
             {uploading ? (
               <Loader2 className="h-4 w-4 animate-spin" />
             ) : (
               <Camera className="h-4 w-4" />
             )}
-            Take Photo
+            <span className="hidden sm:inline">Take Photo</span>
+            <span className="sm:hidden">Camera</span>
           </Button>
           <Button
             type="button"
             variant="secondary"
             disabled={uploading}
             onClick={() => galleryInputRef.current?.click()}
-            className="inline-flex items-center gap-2"
+            className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2"
           >
             <ImagePlus className="h-4 w-4" />
-            Choose from Gallery
+            <span className="hidden sm:inline">Choose from Gallery</span>
+            <span className="sm:hidden">Gallery</span>
           </Button>
         </div>
       )}
@@ -179,16 +181,16 @@ export function PhotoCaptureSection({
       )}
 
       {photos.length > 0 ? (
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
+        <div className="grid grid-cols-2 gap-2 sm:gap-3 sm:grid-cols-3 md:grid-cols-4">
           {photos.map((p) => (
             <div key={p.id} className="overflow-hidden rounded-lg border bg-white">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={p.url}
                 alt={`Photo ${p.tag}`}
-                className="h-28 w-full object-cover"
+                className="h-24 sm:h-28 w-full object-cover"
               />
-              <p className="bg-gray-50 px-2 py-1.5 text-center text-xs font-medium text-gray-600">
+              <p className="bg-gray-50 px-2 py-1 sm:py-1.5 text-center text-xs font-medium text-gray-600">
                 {p.tag}
               </p>
             </div>
@@ -197,7 +199,7 @@ export function PhotoCaptureSection({
       ) : (
         !disabled &&
         inspectionId && (
-          <p className="text-sm text-gray-500">No photos yet. Use camera or gallery above.</p>
+          <p className="text-xs sm:text-sm text-gray-500">No photos yet. Use camera or gallery above.</p>
         )
       )}
     </div>

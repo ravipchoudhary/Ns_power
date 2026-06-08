@@ -15,6 +15,7 @@ import { FormBrandHeader } from "@/components/FormBrandHeader";
 import { PhotoCaptureSection } from "@/components/PhotoCaptureSection";
 import {
   Button,
+  Card,
   FormSection,
   Input,
   OptionGroup,
@@ -188,7 +189,7 @@ export function FsrForm({
 
 
   return (
-    <div className="mx-auto max-w-4xl space-y-5 pb-24">
+    <div className="mx-auto max-w-4xl space-y-4 px-3 py-4 sm:space-y-5 sm:px-4 pb-28">
       <FormBrandHeader
         title="Field Service Report (F.S.R.)"
         subtitle="Sale & Service Dealer for Kirloskar & Cummins Genset up to 2250 KVA"
@@ -581,28 +582,28 @@ export function FsrForm({
         {!disabled && (
           <div className="grid gap-6 md:grid-cols-2">
             <div>
-              <p className="mb-2 text-sm font-medium">Service representative signature</p>
-              <div className="rounded-lg border bg-white">
-                <SignaturePad ref={sigRef} className="h-28 w-full" />
+              <p className="mb-3 text-sm font-medium">Service representative signature</p>
+              <div className="rounded-lg border border-gray-200 bg-white overflow-hidden">
+                <SignaturePad ref={sigRef} />
               </div>
               <Button
                 type="button"
                 variant="ghost"
-                className="mt-2"
+                className="mt-2 text-sm"
                 onClick={() => sigRef.current?.clear()}
               >
                 Clear
               </Button>
             </div>
             <div>
-              <p className="mb-2 text-sm font-medium">Customer signature</p>
-              <div className="rounded-lg border bg-white">
-                <SignaturePad ref={customerSigRef} className="h-28 w-full" />
+              <p className="mb-3 text-sm font-medium">Customer signature</p>
+              <div className="rounded-lg border border-gray-200 bg-white overflow-hidden">
+                <SignaturePad ref={customerSigRef} />
               </div>
               <Button
                 type="button"
                 variant="ghost"
-                className="mt-2"
+                className="mt-2 text-sm"
                 onClick={() => customerSigRef.current?.clear()}
               >
                 Clear
@@ -624,11 +625,11 @@ export function FsrForm({
       </FormSection>
 
       {!disabled && (
-        <div className="sticky bottom-0 flex flex-wrap gap-3 rounded-xl border border-gray-200 bg-white/95 p-4 shadow-lg backdrop-blur">
-          <Button onClick={saveDraft} disabled={saving} variant="secondary">
+        <div className="fixed bottom-0 left-0 right-0 flex flex-wrap gap-2 gap-y-3 rounded-t-xl border border-b-0 border-gray-200 bg-white/95 p-3 shadow-lg backdrop-blur sm:gap-3 sm:p-4">
+          <Button onClick={saveDraft} disabled={saving} variant="secondary" className="flex-1 min-w-max text-sm sm:text-base">
             Save Draft
           </Button>
-          <Button onClick={submitInspection} disabled={saving}>
+          <Button onClick={submitInspection} disabled={saving} className="flex-1 min-w-max text-sm sm:text-base">
             {userRole === "INSPECTOR"
               ? "Submit for Approval"
               : "Submit & Generate PDF"}
@@ -637,11 +638,11 @@ export function FsrForm({
       )}
 
       {pdfUrl && (
-        <div className="rounded-xl border bg-white p-4">
+        <Card title="Report">
           <a href={pdfUrl} target="_blank" rel="noreferrer">
             <Button type="button">Download PDF</Button>
           </a>
-        </div>
+        </Card>
       )}
     </div>
   );

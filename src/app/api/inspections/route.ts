@@ -14,6 +14,7 @@ export async function GET(request: Request) {
   const from = searchParams.get("from");
   const to = searchParams.get("to");
   const inspectorId = searchParams.get("inspectorId");
+  const satisfactory = searchParams.get("satisfactory");
 
   const where: Prisma.InspectionWhereInput = {};
 
@@ -31,6 +32,11 @@ export async function GET(request: Request) {
     where.inspectionDate = {};
     if (from) where.inspectionDate.gte = new Date(from);
     if (to) where.inspectionDate.lte = new Date(to);
+  }
+  if (satisfactory === "yes") {
+    where.satisfactory = true;
+  } else if (satisfactory === "no") {
+    where.satisfactory = false;
   }
   if (q) {
     where.OR = [

@@ -223,7 +223,7 @@ export function InspectionForm({
   const disabled = readOnly;
 
   return (
-    <div className="mx-auto max-w-4xl space-y-5 pb-24">
+    <div className="mx-auto max-w-4xl space-y-4 px-3 py-4 sm:space-y-5 sm:px-4 pb-28">
       <FormBrandHeader
         title="Fire & Pump Routine Inspection"
         subtitle="Routine inspection checklist for fire pump systems"
@@ -533,24 +533,29 @@ export function InspectionForm({
         )}
         {!disabled && (
           <div className="mt-4">
-            <p className="mb-2 text-sm font-medium">Digital Signature</p>
-            <div className="rounded-lg border border-gray-300 bg-white">
-              <SignaturePad ref={sigRef} className="w-full h-32" />
+            <p className="mb-3 text-sm font-medium">Digital Signature</p>
+            <div className="rounded-lg border border-gray-200 bg-white overflow-hidden">
+              <SignaturePad ref={sigRef} />
             </div>
-            <Button
-              type="button"
-              variant="ghost"
-              className="mt-2"
-              onClick={() => sigRef.current?.clear()}
-            >
-              Clear signature
-            </Button>
+            <div className="mt-2 flex flex-wrap gap-2">
+              <Button
+                type="button"
+                variant="ghost"
+                className="text-sm"
+                onClick={() => sigRef.current?.clear()}
+              >
+                Clear signature
+              </Button>
+            </div>
             {initial?.signatureData && (
-              <img
-                src={initial.signatureData}
-                alt="Saved signature"
-                className="mt-2 max-h-20"
-              />
+              <div className="mt-4 rounded-lg border border-gray-100 bg-gray-50 p-2">
+                <p className="mb-2 text-xs text-gray-600">Saved Signature:</p>
+                <img
+                  src={initial.signatureData}
+                  alt="Saved signature"
+                  className="h-auto max-w-full rounded"
+                />
+              </div>
             )}
           </div>
         )}
@@ -578,11 +583,11 @@ export function InspectionForm({
       </FormSection>
 
       {!disabled && (
-        <div className="sticky bottom-0 flex flex-wrap gap-3 rounded-xl border border-gray-200 bg-white/95 p-4 shadow-lg backdrop-blur">
-          <Button onClick={saveDraft} disabled={saving} variant="secondary">
+        <div className="fixed bottom-0 left-0 right-0 flex flex-wrap gap-2 gap-y-3 rounded-t-xl border border-b-0 border-gray-200 bg-white/95 p-3 shadow-lg backdrop-blur sm:gap-3 sm:p-4">
+          <Button onClick={saveDraft} disabled={saving} variant="secondary" className="flex-1 min-w-max text-sm sm:text-base">
             Save Draft
           </Button>
-          <Button onClick={submitInspection} disabled={saving || !id}>
+          <Button onClick={submitInspection} disabled={saving || !id} className="flex-1 min-w-max text-sm sm:text-base">
             {userRole === "INSPECTOR"
               ? "Submit for Approval"
               : "Submit & Generate PDF"}
