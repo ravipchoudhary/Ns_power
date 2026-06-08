@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import type SignatureCanvas from "react-signature-canvas";
+import type { SignaturePadHandle } from "@/components/SignaturePad";
 import {
   CHECKLIST_ITEMS,
   normalizeChecklist,
@@ -74,7 +75,7 @@ export function InspectionForm({
   formTemplateId?: string;
 }) {
   const router = useRouter();
-  const sigRef = useRef<SignatureCanvas | null>(null);
+  const sigRef = useRef<SignaturePadHandle | null>(null);
 
   const [id, setId] = useState(initial?.id);
   const [saving, setSaving] = useState(false);

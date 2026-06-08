@@ -3,11 +3,18 @@
 import { forwardRef, useEffect, useRef, useState, useImperativeHandle } from "react";
 import SignatureCanvas from "react-signature-canvas";
 
-interface SignaturePadProps {
+export interface SignaturePadProps {
   className?: string;
 }
 
-const SignaturePad = forwardRef<SignatureCanvas, SignaturePadProps>(
+export type SignaturePadHandle = {
+  clear: () => void;
+  toDataURL: () => string | undefined;
+  isEmpty: () => boolean | undefined;
+  fromDataURL: (d: string) => void;
+};
+
+const SignaturePad = forwardRef<SignaturePadHandle, SignaturePadProps>(
   function SignaturePad({ className }, ref) {
     const containerRef = useRef<HTMLDivElement>(null);
     const sigRef = useRef<any>(null);
