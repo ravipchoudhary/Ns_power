@@ -1,6 +1,6 @@
 "use client";
 
-import { forwardRef, useEffect, useRef, useState } from "react";
+import { forwardRef, useEffect, useRef, useState, useImperativeHandle } from "react";
 import SignatureCanvas from "react-signature-canvas";
 
 interface SignaturePadProps {
@@ -10,7 +10,14 @@ interface SignaturePadProps {
 const SignaturePad = forwardRef<SignatureCanvas, SignaturePadProps>(
   function SignaturePad({ className }, ref) {
     const containerRef = useRef<HTMLDivElement>(null);
-    const [key, setKey] = useState(0);
+    const sigRef = useRef<any>(null);
+    const [savedData, setSavedData] = useState<string | null>(null);
+
+    // expose internal ref methods to parent via forwarded ref
+    useImperativeHandle(ref, () => sigRef.current);
+
+    // storage key per pathname so multiple forms don't clash
+    const storageKey = typeof window !== "undefined" ? `signature:${window.location.pathname}` : "signature:global";
 
     useEffect(() => {
       const container = containerRef.current;
@@ -30,13 +37,30 @@ const SignaturePad = forwardRef<SignatureCanvas, SignaturePadProps>(
       };
     }, []);
 
-    // Force re-render to ensure canvas preserves state
+    // Load saved signature from localStorage on mount
     useEffect(() => {
-      // This ensures the canvas is properly initialized
-      return () => {
-        // Cleanup if needed
-      };
-    }, []);
+      try {
+        const raw = localStorage.getItem(storageKey);
+        if (raw && sigRef.current) {
+          sigRef.current.fromDataURL(raw);
+          setSavedData(raw);
+        }
+      } catch (e) {
+        // ignore storage errors
+      }
+    }, [storageKey]);
+
+    // called when user finishes drawing
+    const handleEnd = () => {
+      try {
+        if (!sigRef.current) return;
+        const data = sigRef.current.getTrimmedCanvas().toDataURL("image/png");
+        localStorage.setItem(storageKey, data);
+        setSavedData(data);
+      } catch (e) {
+        // ignore
+      }
+    };
 
     return (
       <div
@@ -45,8 +69,8 @@ const SignaturePad = forwardRef<SignatureCanvas, SignaturePadProps>(
         style={{ touchAction: "none", WebkitTouchCallout: "none" }}
       >
         <SignatureCanvas
-          key={key}
-          ref={ref}
+          ref={sigRef}
+          onEnd={handleEnd}
           canvasProps={{
             className:
               className ?? "w-full h-32 sm:h-40 border border-gray-200 rounded bg-white",
