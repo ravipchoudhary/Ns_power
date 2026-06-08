@@ -13,11 +13,25 @@ const SignaturePad = forwardRef<SignatureCanvas, SignaturePadProps>(
     const sigRef = useRef<any>(null);
     const [savedData, setSavedData] = useState<string | null>(null);
 
-    // expose internal ref methods to parent via forwarded ref
-    useImperativeHandle(ref, () => sigRef.current);
-
     // storage key per pathname so multiple forms don't clash
     const storageKey = typeof window !== "undefined" ? `signature:${window.location.pathname}` : "signature:global";
+    const lastKey = "signature:last";
+
+    // expose internal ref methods to parent via forwarded ref
+    useImperativeHandle(ref, () => ({
+      clear: () => {
+        try {
+          sigRef.current?.clear();
+        } catch {}
+        try {
+          localStorage.removeItem(storageKey);
+          localStorage.removeItem(lastKey);
+        } catch {}
+      },
+      toDataURL: () => sigRef.current?.toDataURL(),
+      isEmpty: () => sigRef.current?.isEmpty?.(),
+      fromDataURL: (d: string) => sigRef.current?.fromDataURL(d),
+    }));
 
     useEffect(() => {
       const container = containerRef.current;
@@ -37,10 +51,10 @@ const SignaturePad = forwardRef<SignatureCanvas, SignaturePadProps>(
       };
     }, []);
 
-    // Load saved signature from localStorage on mount
+    // Load saved signature from localStorage on mount (try per-path then fallback)
     useEffect(() => {
       try {
-        const raw = localStorage.getItem(storageKey);
+        const raw = localStorage.getItem(storageKey) || localStorage.getItem(lastKey);
         if (raw && sigRef.current) {
           sigRef.current.fromDataURL(raw);
           setSavedData(raw);
@@ -55,7 +69,10 @@ const SignaturePad = forwardRef<SignatureCanvas, SignaturePadProps>(
       try {
         if (!sigRef.current) return;
         const data = sigRef.current.getTrimmedCanvas().toDataURL("image/png");
-        localStorage.setItem(storageKey, data);
+        try {
+          localStorage.setItem(storageKey, data);
+          localStorage.setItem(lastKey, data);
+        } catch {}
         setSavedData(data);
       } catch (e) {
         // ignore
