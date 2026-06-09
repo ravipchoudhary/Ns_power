@@ -30,16 +30,14 @@ export async function POST(request: Request) {
       );
     }
 
-    const { email, password } = (body || {}) as {
-      email?: string;
-      password?: string;
-    };
+    const rawEmail = (body?.email as string)?.trim().toLowerCase();
+    const password = body?.password as string;
 
-    if (!email || !password) return error("Email and password required");
+    if (!rawEmail || !password) return error("Email and password required");
 
     let user;
     try {
-      user = await prisma.user.findUnique({ where: { email } });
+      user = await prisma.user.findUnique({ where: { email: rawEmail } });
     } catch (e) {
       const message =
         e instanceof Error ? e.message : "Unknown Prisma error";
