@@ -1,6 +1,6 @@
 "use client";
 
-import { forwardRef, useEffect, useRef, useState, useImperativeHandle } from "react";
+import { forwardRef, useEffect, useRef, useState, useImperativeHandle, useCallback } from "react";
 import SignatureCanvas from "react-signature-canvas";
 
 export interface SignaturePadProps {
@@ -19,6 +19,8 @@ const SignaturePad = forwardRef<SignaturePadHandle, SignaturePadProps>(
     const containerRef = useRef<HTMLDivElement>(null);
     const sigRef = useRef<any>(null);
     const [savedData, setSavedData] = useState<string | null>(null);
+    const isDrawingRef = useRef(false);
+    const scrollLockRef = useRef(false);
 
     // storage key per pathname so multiple forms don't clash
     const storageKey = typeof window !== "undefined" ? `signature:${window.location.pathname}` : "signature:global";
@@ -29,6 +31,7 @@ const SignaturePad = forwardRef<SignaturePadHandle, SignaturePadProps>(
       clear: () => {
         try {
           sigRef.current?.clear();
+          isDrawingRef.current = false;
         } catch {}
         try {
           localStorage.removeItem(storageKey);
@@ -40,21 +43,42 @@ const SignaturePad = forwardRef<SignaturePadHandle, SignaturePadProps>(
       fromDataURL: (d: string) => sigRef.current?.fromDataURL(d),
     }));
 
+    // Prevent all scroll interference during drawing and after signing
     useEffect(() => {
       const container = containerRef.current;
       if (!container) return;
 
-      // Prevent scrolling while drawing on the signature pad
-      const preventScroll = (e: TouchEvent) => {
+      // Prevent touchmove on the signature pad container
+      const preventTouchMove = (e: TouchEvent) => {
         if (container.contains(e.target as Node)) {
           e.preventDefault();
         }
       };
 
-      container.addEventListener("touchmove", preventScroll, { passive: false });
+      // Prevent page scroll while drawing
+      const handleTouchStart = () => {
+        isDrawingRef.current = true;
+        scrollLockRef.current = true;
+        document.body.style.overflow = "hidden";
+      };
+
+      const handleTouchEnd = () => {
+        isDrawingRef.current = false;
+        setTimeout(() => {
+          scrollLockRef.current = false;
+          document.body.style.overflow = "auto";
+        }, 100);
+      };
+
+      container.addEventListener("touchstart", handleTouchStart);
+      container.addEventListener("touchend", handleTouchEnd);
+      container.addEventListener("touchmove", preventTouchMove, { passive: false });
 
       return () => {
-        container.removeEventListener("touchmove", preventScroll);
+        container.removeEventListener("touchstart", handleTouchStart);
+        container.removeEventListener("touchend", handleTouchEnd);
+        container.removeEventListener("touchmove", preventTouchMove);
+        document.body.style.overflow = "auto";
       };
     }, []);
 
@@ -63,8 +87,16 @@ const SignaturePad = forwardRef<SignaturePadHandle, SignaturePadProps>(
       try {
         const raw = localStorage.getItem(storageKey) || localStorage.getItem(lastKey);
         if (raw && sigRef.current) {
-          sigRef.current.fromDataURL(raw);
-          setSavedData(raw);
+          // Delay restore to ensure canvas is ready
+          const timer = setTimeout(() => {
+            try {
+              sigRef.current?.fromDataURL(raw);
+              setSavedData(raw);
+            } catch (e) {
+              // ignore
+            }
+          }, 50);
+          return () => clearTimeout(timer);
         }
       } catch (e) {
         // ignore storage errors
@@ -72,7 +104,7 @@ const SignaturePad = forwardRef<SignaturePadHandle, SignaturePadProps>(
     }, [storageKey]);
 
     // called when user finishes drawing
-    const handleEnd = () => {
+    const handleEnd = useCallback(() => {
       try {
         if (!sigRef.current) return;
         const data = sigRef.current.getTrimmedCanvas().toDataURL("image/png");
@@ -81,20 +113,36 @@ const SignaturePad = forwardRef<SignaturePadHandle, SignaturePadProps>(
           localStorage.setItem(lastKey, data);
         } catch {}
         setSavedData(data);
+        isDrawingRef.current = false;
       } catch (e) {
         // ignore
       }
+    }, [storageKey]);
+
+    const handleMouseDown = () => {
+      isDrawingRef.current = true;
+    };
+
+    const handleMouseUp = () => {
+      handleEnd();
     };
 
     return (
       <div
         ref={containerRef}
         className="w-full touch-none select-none"
-        style={{ touchAction: "none", WebkitTouchCallout: "none" }}
+        style={{
+          touchAction: "none",
+          WebkitTouchCallout: "none",
+          position: "relative",
+          isolation: "isolate",
+        }}
       >
         <SignatureCanvas
           ref={sigRef}
           onEnd={handleEnd}
+          onMouseDown={handleMouseDown}
+          onMouseUp={handleMouseUp}
           canvasProps={{
             className:
               className ?? "w-full h-32 sm:h-40 border border-gray-200 rounded bg-white",
@@ -102,7 +150,13 @@ const SignaturePad = forwardRef<SignaturePadHandle, SignaturePadProps>(
               touchAction: "none",
               WebkitTouchCallout: "none",
               userSelect: "none",
-            },
+              willChange: "contents",
+              display: "block",
+              margin: "0",
+              padding: "0",
+              backfaceVisibility: "hidden",
+              WebkitBackfaceVisibility: "hidden",
+            } as React.CSSProperties,
           }}
           velocityFilterWeight={0.7}
           minWidth={1}
@@ -112,5 +166,7 @@ const SignaturePad = forwardRef<SignaturePadHandle, SignaturePadProps>(
     );
   }
 );
+
+SignaturePad.displayName = "SignaturePad";
 
 export default SignaturePad;

@@ -584,7 +584,7 @@ export function FsrForm({
           <div className="grid gap-6 md:grid-cols-2">
             <div>
               <p className="mb-3 text-sm font-medium">Service representative signature</p>
-              <div className="rounded-lg border border-gray-200 bg-white overflow-hidden">
+              <div className="rounded-lg border border-gray-200 bg-white overflow-hidden" style={{ position: "relative", zIndex: 10 }}>
                 <SignaturePad ref={sigRef} />
               </div>
               <Button
@@ -598,7 +598,7 @@ export function FsrForm({
             </div>
             <div>
               <p className="mb-3 text-sm font-medium">Customer signature</p>
-              <div className="rounded-lg border border-gray-200 bg-white overflow-hidden">
+              <div className="rounded-lg border border-gray-200 bg-white overflow-hidden" style={{ position: "relative", zIndex: 10 }}>
                 <SignaturePad ref={customerSigRef} />
               </div>
               <Button

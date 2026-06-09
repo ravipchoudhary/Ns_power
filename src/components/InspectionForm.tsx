@@ -535,7 +535,7 @@ export function InspectionForm({
         {!disabled && (
           <div className="mt-4">
             <p className="mb-3 text-sm font-medium">Digital Signature</p>
-            <div className="rounded-lg border border-gray-200 bg-white overflow-hidden">
+            <div className="rounded-lg border border-gray-200 bg-white overflow-hidden" style={{ position: "relative", zIndex: 10 }}>
               <SignaturePad ref={sigRef} />
             </div>
             <div className="mt-2 flex flex-wrap gap-2">
