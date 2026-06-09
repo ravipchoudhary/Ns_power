@@ -55,7 +55,7 @@ const SignaturePad = forwardRef<SignaturePadHandle, SignaturePadProps>(
         }
       };
 
-      // Prevent page scroll while drawing
+      // Prevent page scroll while drawing (touch)
       const handleTouchStart = () => {
         isDrawingRef.current = true;
         scrollLockRef.current = true;
@@ -70,14 +70,33 @@ const SignaturePad = forwardRef<SignaturePadHandle, SignaturePadProps>(
         }, 100);
       };
 
+      // Prevent page scroll while drawing (mouse)
+      const handleMouseDown = () => {
+        isDrawingRef.current = true;
+        scrollLockRef.current = true;
+        document.body.style.overflow = "hidden";
+      };
+
+      const handleMouseUp = () => {
+        isDrawingRef.current = false;
+        setTimeout(() => {
+          scrollLockRef.current = false;
+          document.body.style.overflow = "auto";
+        }, 100);
+      };
+
       container.addEventListener("touchstart", handleTouchStart);
       container.addEventListener("touchend", handleTouchEnd);
       container.addEventListener("touchmove", preventTouchMove, { passive: false });
+      container.addEventListener("mousedown", handleMouseDown);
+      container.addEventListener("mouseup", handleMouseUp);
 
       return () => {
         container.removeEventListener("touchstart", handleTouchStart);
         container.removeEventListener("touchend", handleTouchEnd);
         container.removeEventListener("touchmove", preventTouchMove);
+        container.removeEventListener("mousedown", handleMouseDown);
+        container.removeEventListener("mouseup", handleMouseUp);
         document.body.style.overflow = "auto";
       };
     }, []);
@@ -103,7 +122,6 @@ const SignaturePad = forwardRef<SignaturePadHandle, SignaturePadProps>(
       }
     }, [storageKey]);
 
-    // called when user finishes drawing
     const handleEnd = useCallback(() => {
       try {
         if (!sigRef.current) return;
@@ -119,14 +137,6 @@ const SignaturePad = forwardRef<SignaturePadHandle, SignaturePadProps>(
       }
     }, [storageKey]);
 
-    const handleMouseDown = () => {
-      isDrawingRef.current = true;
-    };
-
-    const handleMouseUp = () => {
-      handleEnd();
-    };
-
     return (
       <div
         ref={containerRef}
@@ -141,8 +151,6 @@ const SignaturePad = forwardRef<SignaturePadHandle, SignaturePadProps>(
         <SignatureCanvas
           ref={sigRef}
           onEnd={handleEnd}
-          onMouseDown={handleMouseDown}
-          onMouseUp={handleMouseUp}
           canvasProps={{
             className:
               className ?? "w-full h-32 sm:h-40 border border-gray-200 rounded bg-white",
