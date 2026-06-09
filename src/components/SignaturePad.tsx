@@ -22,8 +22,19 @@ const SignaturePad = forwardRef<SignaturePadHandle, SignaturePadProps>(
     const isDrawingRef = useRef(false);
     const scrollLockRef = useRef(false);
 
-    // storage key per pathname so multiple forms don't clash
-    const storageKey = typeof window !== "undefined" ? `signature:${window.location.pathname}` : "signature:global";
+    // Use a stable session ID instead of pathname (which changes on mobile)
+    const [sessionId] = useState(() => {
+      if (typeof window === "undefined") return "signature:global";
+      // Try to get from sessionStorage (persists for tab lifetime)
+      let id = sessionStorage.getItem("__sig_session_id");
+      if (!id) {
+        id = "signature:session:" + Date.now() + "-" + Math.random().toString(36).slice(2);
+        sessionStorage.setItem("__sig_session_id", id);
+      }
+      return id;
+    });
+
+    const storageKey = sessionId;
     const lastKey = "signature:last";
 
     // expose internal ref methods to parent via forwarded ref
@@ -85,11 +96,28 @@ const SignaturePad = forwardRef<SignaturePadHandle, SignaturePadProps>(
         }, 100);
       };
 
+      // Handle visibility change - restore signature if it was cleared
+      const handleVisibilityChange = () => {
+        if (document.visibilityState === "visible" && sigRef.current?.isEmpty?.()) {
+          try {
+            const raw = localStorage.getItem(storageKey) || localStorage.getItem(lastKey);
+            if (raw) {
+              setTimeout(() => {
+                sigRef.current?.fromDataURL(raw);
+              }, 50);
+            }
+          } catch (e) {
+            // ignore
+          }
+        }
+      };
+
       container.addEventListener("touchstart", handleTouchStart);
       container.addEventListener("touchend", handleTouchEnd);
       container.addEventListener("touchmove", preventTouchMove, { passive: false });
       container.addEventListener("mousedown", handleMouseDown);
       container.addEventListener("mouseup", handleMouseUp);
+      document.addEventListener("visibilitychange", handleVisibilityChange);
 
       return () => {
         container.removeEventListener("touchstart", handleTouchStart);
@@ -97,29 +125,32 @@ const SignaturePad = forwardRef<SignaturePadHandle, SignaturePadProps>(
         container.removeEventListener("touchmove", preventTouchMove);
         container.removeEventListener("mousedown", handleMouseDown);
         container.removeEventListener("mouseup", handleMouseUp);
+        document.removeEventListener("visibilitychange", handleVisibilityChange);
         document.body.style.overflow = "auto";
       };
-    }, []);
+    }, [storageKey]);
 
-    // Load saved signature from localStorage on mount (try per-path then fallback)
+    // Load saved signature from localStorage on mount (try session then fallback)
     useEffect(() => {
-      try {
-        const raw = localStorage.getItem(storageKey) || localStorage.getItem(lastKey);
-        if (raw && sigRef.current) {
-          // Delay restore to ensure canvas is ready
-          const timer = setTimeout(() => {
+      const timer = setTimeout(() => {
+        try {
+          let raw = localStorage.getItem(storageKey);
+          if (!raw) {
+            raw = localStorage.getItem(lastKey);
+          }
+          if (raw && sigRef.current) {
             try {
               sigRef.current?.fromDataURL(raw);
               setSavedData(raw);
             } catch (e) {
-              // ignore
+              console.warn("Failed to restore signature:", e);
             }
-          }, 50);
-          return () => clearTimeout(timer);
+          }
+        } catch (e) {
+          // ignore storage errors
         }
-      } catch (e) {
-        // ignore storage errors
-      }
+      }, 100);
+      return () => clearTimeout(timer);
     }, [storageKey]);
 
     const handleEnd = useCallback(() => {
