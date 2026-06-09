@@ -185,6 +185,8 @@ export function FsrForm({
     }
     if (data.pdfUrl) setPdfUrl(data.pdfUrl);
     setMessage(data.message || submitSuccessMessage(userRole));
+    sigRef.current?.clearStorage?.();
+    customerSigRef.current?.clearStorage?.();
     router.refresh();
   }
 
