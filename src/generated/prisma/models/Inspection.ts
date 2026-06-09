@@ -1460,7 +1460,6 @@ export type InspectionCreateOrConnectWithoutAssignedToInput = {
 
 export type InspectionCreateManyAssignedToInputEnvelope = {
   data: Prisma.InspectionCreateManyAssignedToInput | Prisma.InspectionCreateManyAssignedToInput[]
-  skipDuplicates?: boolean
 }
 
 export type InspectionCreateWithoutCreatedByInput = {
@@ -1556,7 +1555,6 @@ export type InspectionCreateOrConnectWithoutCreatedByInput = {
 
 export type InspectionCreateManyCreatedByInputEnvelope = {
   data: Prisma.InspectionCreateManyCreatedByInput | Prisma.InspectionCreateManyCreatedByInput[]
-  skipDuplicates?: boolean
 }
 
 export type InspectionUpsertWithWhereUniqueWithoutAssignedToInput = {
@@ -1730,7 +1728,6 @@ export type InspectionCreateOrConnectWithoutPropertyInput = {
 
 export type InspectionCreateManyPropertyInputEnvelope = {
   data: Prisma.InspectionCreateManyPropertyInput | Prisma.InspectionCreateManyPropertyInput[]
-  skipDuplicates?: boolean
 }
 
 export type InspectionUpsertWithWhereUniqueWithoutPropertyInput = {
@@ -1842,7 +1839,6 @@ export type InspectionCreateOrConnectWithoutFormTemplateInput = {
 
 export type InspectionCreateManyFormTemplateInputEnvelope = {
   data: Prisma.InspectionCreateManyFormTemplateInput | Prisma.InspectionCreateManyFormTemplateInput[]
-  skipDuplicates?: boolean
 }
 
 export type InspectionUpsertWithWhereUniqueWithoutFormTemplateInput = {
@@ -3720,7 +3716,6 @@ export type InspectionCreateManyArgs<ExtArgs extends runtime.Types.Extensions.In
    * The data used to create many Inspections.
    */
   data: Prisma.InspectionCreateManyInput | Prisma.InspectionCreateManyInput[]
-  skipDuplicates?: boolean
 }
 
 /**
@@ -3739,7 +3734,6 @@ export type InspectionCreateManyAndReturnArgs<ExtArgs extends runtime.Types.Exte
    * The data used to create many Inspections.
    */
   data: Prisma.InspectionCreateManyInput | Prisma.InspectionCreateManyInput[]
-  skipDuplicates?: boolean
   /**
    * Choose, which related nodes to fetch as well
    */

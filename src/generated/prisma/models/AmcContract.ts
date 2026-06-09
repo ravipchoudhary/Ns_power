@@ -572,7 +572,6 @@ export type AmcContractCreateOrConnectWithoutAssignedToInput = {
 
 export type AmcContractCreateManyAssignedToInputEnvelope = {
   data: Prisma.AmcContractCreateManyAssignedToInput | Prisma.AmcContractCreateManyAssignedToInput[]
-  skipDuplicates?: boolean
 }
 
 export type AmcContractUpsertWithWhereUniqueWithoutAssignedToInput = {
@@ -641,7 +640,6 @@ export type AmcContractCreateOrConnectWithoutPropertyInput = {
 
 export type AmcContractCreateManyPropertyInputEnvelope = {
   data: Prisma.AmcContractCreateManyPropertyInput | Prisma.AmcContractCreateManyPropertyInput[]
-  skipDuplicates?: boolean
 }
 
 export type AmcContractUpsertWithWhereUniqueWithoutPropertyInput = {
@@ -1530,7 +1528,6 @@ export type AmcContractCreateManyArgs<ExtArgs extends runtime.Types.Extensions.I
    * The data used to create many AmcContracts.
    */
   data: Prisma.AmcContractCreateManyInput | Prisma.AmcContractCreateManyInput[]
-  skipDuplicates?: boolean
 }
 
 /**
@@ -1549,7 +1546,6 @@ export type AmcContractCreateManyAndReturnArgs<ExtArgs extends runtime.Types.Ext
    * The data used to create many AmcContracts.
    */
   data: Prisma.AmcContractCreateManyInput | Prisma.AmcContractCreateManyInput[]
-  skipDuplicates?: boolean
   /**
    * Choose, which related nodes to fetch as well
    */

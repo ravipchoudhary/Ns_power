@@ -1,9 +1,15 @@
 import bcrypt from "bcryptjs";
-import { prisma } from "@/lib/db";
+import { prisma, databaseUrlMissing } from "@/lib/db";
 import { createToken, setSessionCookie } from "@/lib/auth";
 import { json, error } from "@/lib/api";
 
 export async function POST(request: Request) {
+  if (databaseUrlMissing) {
+    return error(
+      "Server misconfiguration: DATABASE_URL is not set. Create a .env file or set DATABASE_URL in the environment.",
+      500
+    );
+  }
   try {
     const raw = await request.text();
     let body: any = null;

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { format } from "date-fns";
 import { Button, Card, Badge, Input } from "@/components/ui";
@@ -20,6 +21,7 @@ type Inspection = {
 };
 
 export default function InspectionsPage() {
+  const router = useRouter();
   const [inspections, setInspections] = useState<Inspection[]>([]);
   const [q, setQ] = useState("");
   const [status, setStatus] = useState("");
@@ -144,46 +146,51 @@ export default function InspectionsPage() {
             {/* Mobile Card View */}
             <div className="space-y-3 md:hidden">
               {inspections.map((row) => (
-                <Link key={row.id} href={`/inspections/${row.id}`}>
-                  <div className="rounded-lg border border-gray-200 bg-white p-4 hover:bg-gray-50 transition">
-                    <div className="mb-2 flex items-start justify-between gap-2">
-                      <div className="flex-1 min-w-0">
-                        <p className="font-semibold text-gray-900 truncate">{row.buildingName}</p>
-                        <p className="text-xs text-gray-500 truncate">{row.buildingAddress}</p>
-                      </div>
-                      <Badge tone={statusTone(row.status)}>
-                        {statusLabel(row.status)}
-                      </Badge>
+                <div
+                  key={row.id}
+                  className="rounded-lg border border-gray-200 bg-white p-4 hover:bg-gray-50 transition"
+                >
+                  <div className="mb-2 flex items-start justify-between gap-2">
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold text-gray-900 truncate">{row.buildingName}</p>
+                      <p className="text-xs text-gray-500 truncate">{row.buildingAddress}</p>
                     </div>
-                    <div className="grid grid-cols-2 gap-2 text-xs text-gray-600">
-                      <div>
-                        <span className="font-medium">Form:</span> {row.formTemplate?.name || "—"}
-                      </div>
-                      <div>
-                        <span className="font-medium">Date:</span>{" "}
-                        {row.inspectionDate
-                          ? format(new Date(row.inspectionDate), "dd MMM")
-                          : "—"}
-                      </div>
-                      <div className="col-span-2">
-                        <span className="font-medium">Inspector:</span>{" "}
-                        {row.inspectorName || row.assignedTo?.name || "—"}
-                      </div>
+                    <Badge tone={statusTone(row.status)}>
+                      {statusLabel(row.status)}
+                    </Badge>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2 text-xs text-gray-600">
+                    <div>
+                      <span className="font-medium">Form:</span> {row.formTemplate?.name || "—"}
                     </div>
-                    <div className="mt-3 flex gap-2">
-                      <Button variant="secondary" className="flex-1 text-xs sm:text-sm">
-                        Edit
-                      </Button>
-                      {row.pdfPath && (
-                        <a href={row.pdfPath} target="_blank" rel="noreferrer" className="flex-1">
-                          <Button variant="ghost" className="w-full text-xs sm:text-sm">
-                            PDF
-                          </Button>
-                        </a>
-                      )}
+                    <div>
+                      <span className="font-medium">Date:</span>{" "}
+                      {row.inspectionDate
+                        ? format(new Date(row.inspectionDate), "dd MMM")
+                        : "—"}
+                    </div>
+                    <div className="col-span-2">
+                      <span className="font-medium">Inspector:</span>{" "}
+                      {row.inspectorName || row.assignedTo?.name || "—"}
                     </div>
                   </div>
-                </Link>
+                  <div className="mt-3 flex gap-2">
+                    <Button
+                      variant="secondary"
+                      className="flex-1 w-full text-xs sm:text-sm"
+                      onClick={() => router.push(`/inspections/${row.id}`)}
+                    >
+                      Edit
+                    </Button>
+                    {row.pdfPath && (
+                      <a href={row.pdfPath} target="_blank" rel="noreferrer" className="flex-1">
+                        <Button variant="ghost" className="w-full text-xs sm:text-sm">
+                          PDF
+                        </Button>
+                      </a>
+                    )}
+                  </div>
+                </div>
               ))}
             </div>
 

@@ -1,16 +1,16 @@
 import { PrismaClient } from "@/generated/prisma/client";
-import { PrismaPg } from "@prisma/adapter-pg";
+import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3";
 
 const globalForPrisma = globalThis as unknown as { prisma: PrismaClient };
 
-const connectionString = process.env.DATABASE_URL;
-// Never throw at import-time (Vercel cold starts). If DATABASE_URL is missing,
-// use a dummy connection string. The real error will surface at query time.
-// Using sslmode=verify-full for security (avoid deprecated modes like 'require' or 'prefer')
-const safeConnectionString =
-  connectionString ||
-  "postgres://invalid:invalid@localhost:5432/invalid?sslmode=verify-full";
-const adapter = new PrismaPg({ connectionString: safeConnectionString });
+const defaultDevConnection =
+  process.env.NODE_ENV !== "production" ? "file:./dev.db" : undefined;
+export const connectionString = process.env.DATABASE_URL || defaultDevConnection;
+export const databaseUrlMissing = !connectionString && process.env.NODE_ENV === "production";
+
+const adapter = new PrismaBetterSqlite3({
+  url: connectionString ?? "file:./dev.db",
+});
 
 export const prisma =
   globalForPrisma.prisma ??
