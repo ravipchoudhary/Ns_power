@@ -218,7 +218,6 @@ export function InspectionForm({
     if (data.pdfUrl) setPdfUrl(data.pdfUrl);
     if (data.whatsappShareUrl) setWhatsappUrl(data.whatsappShareUrl);
     setMessage(data.message || submitSuccessMessage(userRole));
-    sigRef.current?.clearStorage?.();
     router.refresh();
   }
 

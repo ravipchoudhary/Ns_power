@@ -9,7 +9,6 @@ export interface SignaturePadProps {
 
 export type SignaturePadHandle = {
   clear: () => void;
-  clearStorage: () => void;
   toDataURL: () => string | undefined;
   isEmpty: () => boolean | undefined;
   fromDataURL: (d: string) => void;
@@ -34,14 +33,10 @@ const SignaturePad = forwardRef<SignaturePadHandle, SignaturePadProps>(
           sigRef.current?.clear();
           isDrawingRef.current = false;
         } catch {}
-        setSavedData(null);
-      },
-      clearStorage: () => {
         try {
           localStorage.removeItem(storageKey);
           localStorage.removeItem(lastKey);
         } catch {}
-        setSavedData(null);
       },
       toDataURL: () => sigRef.current?.toDataURL(),
       isEmpty: () => sigRef.current?.isEmpty?.(),
