@@ -5,13 +5,13 @@ export function needsAdminApproval(role: string) {
 }
 
 export function inspectorCanEdit(status: string) {
-  return ["DRAFT", "ASSIGNED", "IN_PROGRESS", "REJECTED"].includes(status);
+  return ["DRAFT", "ASSIGNED", "IN_PROGRESS", "REJECTED", "COMPLETED"].includes(status);
 }
 
 /** Who can change form fields on the inspection detail page */
 export function canEditInspectionForm(role: string, status: string) {
   if (role === "ADMIN") {
-    return status !== "COMPLETED";
+    return true; // Admins can always edit
   }
   return inspectorCanEdit(status);
 }
